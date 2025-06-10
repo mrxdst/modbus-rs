@@ -1,0 +1,14 @@
+[package]
+name = "modbus-test"
+version = "2.0.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+modbus = { path = "../modbus" }
+tokio = { version = "1.43.0", features = ["full"] }
+clap = { version = "4.5.21", features = ["derive"] }
+shellwords = "1.1.0"
+rustyline = { version = "15.0.0", features = ["derive"] }
+comfy-table = "7.1.3"
+csv = "1.3.1"

@@ -1,0 +1,9 @@
+[package]
+name = "modbus"
+version = "2.0.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1.43.0", features = ["full"] }
+bytes = "1.10.0"
