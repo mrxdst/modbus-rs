@@ -51,7 +51,7 @@ impl ModbusTCPServerHandler for ServerImpl<'static> {
         println!("[{}] Disconnected", addr);
     }
 
-    async fn handle_read_coils(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<[bool]>, ModbusException> {
+    async fn handle_read_coils(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<'_, [bool]>, ModbusException> {
         println!(
             "[{}] Read coils: unit: {}, address: 0{:05}-0{:05}",
             addr,
@@ -64,7 +64,7 @@ impl ModbusTCPServerHandler for ServerImpl<'static> {
         Ok(result.to_vec().into())
     }
 
-    async fn handle_read_discrete_inputs(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<[bool]>, ModbusException> {
+    async fn handle_read_discrete_inputs(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<'_, [bool]>, ModbusException> {
         println!(
             "[{}] Read discrete inputs: unit: {}, address: 1{:05}-1{:05}",
             addr,
@@ -75,7 +75,7 @@ impl ModbusTCPServerHandler for ServerImpl<'static> {
         Ok((address..=(address + (length - 1))).map(|v| v % 2 == 0).collect())
     }
 
-    async fn handle_read_input_registers(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<[u16]>, ModbusException> {
+    async fn handle_read_input_registers(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<'_, [u16]>, ModbusException> {
         println!(
             "[{}] Read input registers: unit: {}, address: 3{:05}-3{:05}",
             addr,
@@ -86,7 +86,7 @@ impl ModbusTCPServerHandler for ServerImpl<'static> {
         Ok((address..=(address + (length - 1))).collect())
     }
 
-    async fn handle_read_holding_registers(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<[u16]>, ModbusException> {
+    async fn handle_read_holding_registers(&self, addr: SocketAddr, unit_id: u8, address: u16, length: u16) -> Result<Cow<'_, [u16]>, ModbusException> {
         println!(
             "[{}] Read holding registers: unit: {}, address: 4{:05}-4{:05}",
             addr,
@@ -131,7 +131,7 @@ impl ModbusTCPServerHandler for ServerImpl<'static> {
         Ok(())
     }
 
-    async fn handle_read_device_identification(&self, addr: SocketAddr, unit_id: u8) -> Result<Cow<DeviceIdentification>, ModbusException> {
+    async fn handle_read_device_identification(&self, addr: SocketAddr, unit_id: u8) -> Result<Cow<'_, DeviceIdentification<'_>>, ModbusException> {
         println!("[{}] Read device identification: unit: {}", addr, unit_id);
         Ok(Cow::Borrowed(&self.device_info))
     }

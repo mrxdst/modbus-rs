@@ -12,7 +12,7 @@ impl<'a> Encodable for ModbusEncapsulatedInterfaceResponse<'a> {
     fn encode(&self, encoder: &mut Encoder) -> EncodeResult {
         encoder.write_u8(self.kind.into());
         encoder.write_bytes(&self.data);
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -21,6 +21,6 @@ impl<'a> Decodable<Self> for ModbusEncapsulatedInterfaceResponse<'a> {
         let kind = decoder.read_u8()?.into();
         let data = decoder.read_bytes(decoder.remaining())?.into();
 
-        return Ok(Self { kind, data });
+        Ok(Self { kind, data })
     }
 }

@@ -46,26 +46,24 @@ impl Connection {
             let mut reader = self.reader.lock().await;
             let mut read_buffer = self.read_buffer.lock().await;
 
-            loop {
-                let mut decoder = Decoder::new(&read_buffer);
-                let msg = decoder.read_type();
+            let mut decoder = Decoder::new(&read_buffer);
+            let msg = decoder.read_type();
 
-                match msg {
-                    Ok(msg) => {
-                        let pos = decoder.position();
-                        read_buffer.advance(pos);
-                        return Ok(Some(msg));
-                    }
-                    Err(err) => {
-                        match err {
-                            DecodeError::InvalidData(_) => return Err(ReadError::Decode(err)),
-                            DecodeError::MissingData => break, // wait for more data
-                        }
+            match msg {
+                Ok(msg) => {
+                    let pos = decoder.position();
+                    read_buffer.advance(pos);
+                    return Ok(Some(msg));
+                }
+                Err(err) => {
+                    match err {
+                        DecodeError::InvalidData(_) => return Err(ReadError::Decode(err)),
+                        DecodeError::MissingData => {}, // wait for more data
                     }
                 }
             }
 
-            let bytes_read = reader.read_buf(&mut *read_buffer).await.map_err(|e| ReadError::IO(e))?;
+            let bytes_read = reader.read_buf(&mut *read_buffer).await.map_err(ReadError::IO)?;
 
             if bytes_read == 0 {
                 _ = self.writer.lock().await.shutdown().await;
@@ -75,10 +73,10 @@ impl Connection {
     }
 
     pub async fn write_message(&self, msg: &Message) -> Result<(), WriteError> {
-        let bytes = msg.encode_to_bytes().map_err(|e| WriteError::Encode(e))?;
+        let bytes = msg.encode_to_bytes().map_err(WriteError::Encode)?;
 
         let mut writer = self.writer.lock().await;
-        writer.write_all(&bytes).await.map_err(|e| WriteError::IO(e))?;
+        writer.write_all(&bytes).await.map_err(WriteError::IO)?;
 
         Ok(())
     }

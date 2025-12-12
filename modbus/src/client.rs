@@ -80,7 +80,7 @@ impl ModbusTCPClient {
         let req = ReadCoilsRequest { address, length };
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::ReadCoils, req_body).await?;
-        let res = ReadCoilsResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+        let res = ReadCoilsResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         Ok(res.values.into())
     }
 
@@ -89,7 +89,7 @@ impl ModbusTCPClient {
         let req = ReadDiscreteInputsRequest { address, length };
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::ReadDiscreteInputs, req_body).await?;
-        let res = ReadDiscreteInputsResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+        let res = ReadDiscreteInputsResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         Ok(res.values.into())
     }
 
@@ -98,7 +98,7 @@ impl ModbusTCPClient {
         let req = ReadInputRegistersRequest { address, length };
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::ReadInputRegisters, req_body).await?;
-        let res = ReadInputRegistersResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+        let res = ReadInputRegistersResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         Ok(res.values.into())
     }
 
@@ -108,7 +108,7 @@ impl ModbusTCPClient {
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::ReadHoldingRegisters, req_body).await?;
         let res =
-            ReadHoldingRegistersResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+            ReadHoldingRegistersResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         Ok(res.values.into())
     }
 
@@ -116,11 +116,11 @@ impl ModbusTCPClient {
         let req = WriteSingleCoilRequest { address, value };
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::WriteSingleCoil, req_body).await?;
-        let res = WriteSingleCoilResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+        let res = WriteSingleCoilResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         if res.address == req.address && res.value == req.value {
             Ok(())
         } else {
-            Err(ModbusError::InvalidResponse(format!("Malformed response")))
+            Err(ModbusError::InvalidResponse("Malformed response".to_string()))
         }
     }
 
@@ -129,15 +129,15 @@ impl ModbusTCPClient {
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::WriteSingleHoldingRegister, req_body).await?;
         let res = WriteSingleHoldingRegisterResponse::decode_from_bytes(&result)
-            .map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+            .map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         if res.address == req.address && res.value == req.value {
             Ok(())
         } else {
-            Err(ModbusError::InvalidResponse(format!("Malformed response")))
+            Err(ModbusError::InvalidResponse("Malformed response".to_string()))
         }
     }
 
-    pub async fn write_multiple_coils<'a>(&self, unit_id: u8, address: u16, values: &[bool]) -> Result<(), ModbusError> {
+    pub async fn write_multiple_coils(&self, unit_id: u8, address: u16, values: &[bool]) -> Result<(), ModbusError> {
         validate_input(address, values.len(), WRITE_MULTIPLE_COILS_MAX_LEN)?;
         let req = WriteMultipleCoilsRequest {
             address,
@@ -145,15 +145,15 @@ impl ModbusTCPClient {
         };
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::WriteMultipleCoils, req_body).await?;
-        let res = WriteMultipleCoilsResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+        let res = WriteMultipleCoilsResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         if res.address == req.address && res.length as usize == req.values.len() {
             Ok(())
         } else {
-            Err(ModbusError::InvalidResponse(format!("Malformed response")))
+            Err(ModbusError::InvalidResponse("Malformed response".to_string()))
         }
     }
 
-    pub async fn write_multiple_holding_registers<'a>(&self, unit_id: u8, address: u16, values: &[u16]) -> Result<(), ModbusError> {
+    pub async fn write_multiple_holding_registers(&self, unit_id: u8, address: u16, values: &[u16]) -> Result<(), ModbusError> {
         validate_input(address, values.len(), WRITE_MULTIPLE_HOLDING_REGISTERS_MAX_LEN)?;
         let req = WriteMultipleHoldingRegistersRequest {
             address,
@@ -162,11 +162,11 @@ impl ModbusTCPClient {
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::WriteMultipleHoldingRegisters, req_body).await?;
         let res = WriteMultipleHoldingRegistersResponse::decode_from_bytes(&result)
-            .map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+            .map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         if res.address == req.address && res.length as usize == req.values.len() {
             Ok(())
         } else {
-            Err(ModbusError::InvalidResponse(format!("Malformed response")))
+            Err(ModbusError::InvalidResponse("Malformed response".to_string()))
         }
     }
 
@@ -175,11 +175,11 @@ impl ModbusTCPClient {
         let req_body = req.encode_to_bytes().expect("Couldn't encode request");
         let result = self.send_request(unit_id, FunctionCode::MaskWriteHoldingRegister, req_body).await?;
         let res =
-            MaskWriteHoldingRegisterResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+            MaskWriteHoldingRegisterResponse::decode_from_bytes(&result).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
         if res.address == req.address && res.and_mask == req.and_mask && res.or_mask == req.or_mask {
             Ok(())
         } else {
-            Err(ModbusError::InvalidResponse(format!("Malformed response")))
+            Err(ModbusError::InvalidResponse("Malformed response".to_string()))
         }
     }
 
@@ -193,16 +193,16 @@ impl ModbusTCPClient {
             .send_request(unit_id, FunctionCode::ModbusEncapsulatedInterface, req.encode_to_bytes().unwrap())
             .await?;
         let res = ModbusEncapsulatedInterfaceResponse::decode_from_bytes(&res_body)
-            .map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+            .map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
 
         if res.kind != req.kind {
-            return Err(ModbusError::InvalidResponse(format!("Interface type mismatch")));
+            return Err(ModbusError::InvalidResponse("Interface type mismatch".to_string()));
         }
 
         Ok(res.data.into())
     }
 
-    pub async fn read_device_identification(&self, unit_id: u8) -> Result<DeviceIdentification, ModbusError> {
+    pub async fn read_device_identification(&self, unit_id: u8) -> Result<DeviceIdentification<'_>, ModbusError> {
         let mut more_follows = true;
         let mut next_object_id = 0u8;
 
@@ -235,7 +235,7 @@ impl ModbusTCPClient {
                 )
                 .await?;
             let res = ReadDeviceIdentificationResponse::decode_from_bytes(&res_body)
-                .map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+                .map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
 
             more_follows = res.more_follows;
             next_object_id = res.next_object_id;
@@ -281,7 +281,7 @@ impl ModbusTCPClient {
         match self.connection.write_message(&msg).await {
             Ok(_) => {}
             Err(WriteError::IO(e)) => return Err(ModbusError::IO(e.into())),
-            Err(WriteError::Encode(_)) => return Err(ModbusError::ArgumentsOutOfRange(format!("Error encoding message"))),
+            Err(WriteError::Encode(_)) => return Err(ModbusError::ArgumentsOutOfRange("Error encoding message".to_string())),
         }
 
         let res_msg = match receiver.await.unwrap() {
@@ -290,18 +290,18 @@ impl ModbusTCPClient {
         };
 
         if res_msg.protocol_id != msg.protocol_id {
-            return Err(ModbusError::InvalidResponse(format!("Protocol id mismatch")));
+            return Err(ModbusError::InvalidResponse("Protocol id mismatch".to_string()));
         }
         if res_msg.unit_id != msg.unit_id {
-            return Err(ModbusError::InvalidResponse(format!("Unit id mismatch")));
+            return Err(ModbusError::InvalidResponse("Unit id mismatch".to_string()));
         }
         if let FunctionCode::Error(_) = res_msg.function_code {
             let ex_res =
-                ExceptionMessage::decode_from_bytes(&res_msg.body).map_err(|_| ModbusError::InvalidResponse(format!("Malformed response")))?;
+                ExceptionMessage::decode_from_bytes(&res_msg.body).map_err(|_| ModbusError::InvalidResponse("Malformed response".to_string()))?;
             return Err(ModbusError::ModbusException(ex_res.code));
         }
         if res_msg.function_code != msg.function_code {
-            return Err(ModbusError::InvalidResponse(format!("Function code mismatch")));
+            return Err(ModbusError::InvalidResponse("Function code mismatch".to_string()));
         }
 
         Ok(res_msg.body)
@@ -347,6 +347,6 @@ fn validate_input(address: u16, length: usize, max_length: u16) -> Result<(), Mo
         )));
     }
     u16::checked_add(address, (length - 1) as u16)
-        .ok_or(ModbusError::ArgumentsOutOfRange(format!("Address + length exceeds device address space")))?;
+        .ok_or(ModbusError::ArgumentsOutOfRange("Address + length exceeds device address space".to_string()))?;
     Ok(())
 }

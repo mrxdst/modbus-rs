@@ -46,7 +46,7 @@ pub trait ModbusTCPServerHandler: Send + Sync + 'static {
         unit_id: u8,
         address: u16,
         length: u16,
-    ) -> impl Future<Output = Result<Cow<[bool]>, ModbusException>> + Send {
+    ) -> impl Future<Output = Result<Cow<'_, [bool]>, ModbusException>> + Send {
         async { Err(ModbusException::IllegalFunction) }
     }
     #[allow(unused_variables)]
@@ -56,7 +56,7 @@ pub trait ModbusTCPServerHandler: Send + Sync + 'static {
         unit_id: u8,
         address: u16,
         length: u16,
-    ) -> impl Future<Output = Result<Cow<[bool]>, ModbusException>> + Send {
+    ) -> impl Future<Output = Result<Cow<'_, [bool]>, ModbusException>> + Send {
         async { Err(ModbusException::IllegalFunction) }
     }
     #[allow(unused_variables)]
@@ -66,7 +66,7 @@ pub trait ModbusTCPServerHandler: Send + Sync + 'static {
         unit_id: u8,
         address: u16,
         length: u16,
-    ) -> impl Future<Output = Result<Cow<[u16]>, ModbusException>> + Send {
+    ) -> impl Future<Output = Result<Cow<'_, [u16]>, ModbusException>> + Send {
         async { Err(ModbusException::IllegalFunction) }
     }
     #[allow(unused_variables)]
@@ -76,7 +76,7 @@ pub trait ModbusTCPServerHandler: Send + Sync + 'static {
         unit_id: u8,
         address: u16,
         length: u16,
-    ) -> impl Future<Output = Result<Cow<[u16]>, ModbusException>> + Send {
+    ) -> impl Future<Output = Result<Cow<'_, [u16]>, ModbusException>> + Send {
         async { Err(ModbusException::IllegalFunction) }
     }
     #[allow(unused_variables)]
@@ -104,7 +104,7 @@ pub trait ModbusTCPServerHandler: Send + Sync + 'static {
         &self,
         addr: SocketAddr,
         unit_id: u8,
-    ) -> impl Future<Output = Result<Cow<DeviceIdentification>, ModbusException>> + Send {
+    ) -> impl Future<Output = Result<Cow<'_, DeviceIdentification<'_>>, ModbusException>> + Send {
         async { Err(ModbusException::IllegalFunction) }
     }
     #[allow(unused_variables)]
@@ -114,7 +114,7 @@ pub trait ModbusTCPServerHandler: Send + Sync + 'static {
         unit_id: u8,
         interface_type: u8,
         data: &[u8],
-    ) -> impl Future<Output = Result<Cow<[u8]>, ModbusException>> + Send {
+    ) -> impl Future<Output = Result<Cow<'_, [u8]>, ModbusException>> + Send {
         async { Err(ModbusException::IllegalFunction) }
     }
 }
@@ -249,7 +249,7 @@ where
             _ => return Err(ModbusException::IllegalFunction),
         };
 
-        Ok(bytes.map_err(|_| ModbusException::ServerDeviceFailure)?)
+        bytes.map_err(|_| ModbusException::ServerDeviceFailure)
     }
 
     async fn read_coils<'a>(
@@ -306,7 +306,7 @@ where
         req: &WriteSingleCoilRequest,
         handler: &Arc<T>,
     ) -> Result<WriteSingleCoilResponse, ModbusException> {
-        handler.handle_write_coils(addr, unit_id, req.address, &vec![req.value]).await?;
+        handler.handle_write_coils(addr, unit_id, req.address, &[req.value]).await?;
         Ok(WriteSingleCoilResponse {
             address: req.address,
             value: req.value,
@@ -320,7 +320,7 @@ where
         handler: &Arc<T>,
     ) -> Result<WriteSingleHoldingRegisterResponse, ModbusException> {
         handler
-            .handle_write_holding_registers(addr, unit_id, req.address, &vec![req.value])
+            .handle_write_holding_registers(addr, unit_id, req.address, &[req.value])
             .await?;
         Ok(WriteSingleHoldingRegisterResponse {
             address: req.address,
@@ -366,7 +366,7 @@ where
         validate_output(current_value.len(), 1)?;
         let current_value = current_value[0];
         let value = (current_value & req.and_mask) | (req.or_mask & (!req.and_mask));
-        handler.handle_write_holding_registers(addr, unit_id, req.address, &vec![value]).await?;
+        handler.handle_write_holding_registers(addr, unit_id, req.address, &[value]).await?;
         Ok(MaskWriteHoldingRegisterResponse {
             address: req.address,
             and_mask: req.and_mask,
@@ -418,8 +418,7 @@ where
         };
 
         let data = get_data(req.object_id).ok_or(ModbusException::IllegalDataAddress)?;
-        let max_object_id: u8;
-        match req.device_id_code {
+        let max_object_id = match req.device_id_code {
             ReadDeviceIdentificationIdCode::Unknown(_) => return Err(ModbusException::IllegalDataValue),
             ReadDeviceIdentificationIdCode::Individual => {
                 return Ok(ReadDeviceIdentificationResponse {
@@ -430,10 +429,10 @@ where
                     objects: HashMap::from([(req.object_id, data.into())]),
                 });
             }
-            ReadDeviceIdentificationIdCode::Basic => max_object_id = 0x02,
-            ReadDeviceIdentificationIdCode::Regular => max_object_id = 0x7F,
-            ReadDeviceIdentificationIdCode::Extended => max_object_id = 0xFF,
-        }
+            ReadDeviceIdentificationIdCode::Basic => 0x02,
+            ReadDeviceIdentificationIdCode::Regular => 0x7F,
+            ReadDeviceIdentificationIdCode::Extended => 0xFF,
+        };
 
         let mut msg_length = 8 + 1 + 5 + 2 + data.len(); // 8 MSG, MEI = 1, RDI = 5, 2 per object
         let mut objects: HashMap<u8, Cow<[u8]>> = HashMap::from([(req.object_id, data.into())]);

@@ -10,15 +10,15 @@ impl Encodable for ReadDeviceIdentificationRequest {
     fn encode(&self, encoder: &mut Encoder) -> EncodeResult {
         encoder.write_u8(self.device_id_code.into());
         encoder.write_u8(self.object_id);
-        return Ok(());
+        Ok(())
     }
 }
 
 impl Decodable<Self> for ReadDeviceIdentificationRequest {
     fn decode(decoder: &mut Decoder) -> DecodeResult<Self> {
-        return Ok(Self {
+        Ok(Self {
             device_id_code: decoder.read_u8()?.into(),
             object_id: decoder.read_u8()?,
-        });
+        })
     }
 }

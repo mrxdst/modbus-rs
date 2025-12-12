@@ -31,14 +31,14 @@ pub struct Encoder {
 
 impl Encoder {
     pub fn new() -> Self {
-        return Self {
+        Self {
             buffer: Vec::with_capacity(16),
-        };
+        }
     }
 
     #[allow(unused)]
     pub fn position(&self) -> usize {
-        return self.buffer.len();
+        self.buffer.len()
     }
 
     pub fn write_u8(&mut self, value: u8) {
@@ -50,12 +50,12 @@ impl Encoder {
     }
 
     pub fn write_bools(&mut self, values: &[bool]) {
-        let byte_length = (values.len() + 7) / 8;
+        let byte_length = values.len().div_ceil(8);
         self.buffer.reserve(byte_length);
         for i in 0..byte_length {
             let mut byte = 0;
             for i2 in 0..8 {
-                if values.get((i * 8 + i2) as usize).copied().unwrap_or_default() {
+                if values.get(i * 8 + i2).copied().unwrap_or_default() {
                     byte |= 1 << i2;
                 }
             }
@@ -75,11 +75,11 @@ impl Encoder {
     where
         T: Encodable + ?Sized,
     {
-        return value.encode(self);
+        value.encode(self)
     }
 
     pub fn finish(self) -> Vec<u8> {
-        return self.buffer;
+        self.buffer
     }
 
     pub fn encode<T>(value: &T) -> Result<Vec<u8>, EncodeError>
@@ -88,7 +88,7 @@ impl Encoder {
     {
         let mut encoder = Self::new();
         encoder.write_type(value)?;
-        return Ok(encoder.finish());
+        Ok(encoder.finish())
     }
 }
 
@@ -118,7 +118,7 @@ pub struct Decoder<'a> {
 impl<'a> Decoder<'a> {
     pub fn new(buffer: &'a [u8]) -> Self {
         Self {
-            cursor: Cursor::new(&buffer),
+            cursor: Cursor::new(buffer),
         }
     }
 
@@ -128,7 +128,7 @@ impl<'a> Decoder<'a> {
 
     #[allow(unused)]
     pub fn remaining(&self) -> usize {
-        return self.cursor.remaining();
+        self.cursor.remaining()
     }
 
     pub fn read_u8(&mut self) -> DecodeResult<u8> {
@@ -146,7 +146,7 @@ impl<'a> Decoder<'a> {
     }
 
     pub fn read_bools(&mut self, length: usize) -> DecodeResult<Vec<bool>> {
-        let byte_length = (length + 7) / 8;
+        let byte_length = length.div_ceil(8);
         let mut values = Vec::with_capacity(length);
         for _ in 0..byte_length {
             let byte = self.read_u8()?;
@@ -184,7 +184,7 @@ impl<'a> Decoder<'a> {
     where
         T: Decodable<T>,
     {
-        return T::decode(self);
+        T::decode(self)
     }
 
     pub fn decode<T>(buffer: &'a [u8]) -> DecodeResult<T>
@@ -193,7 +193,7 @@ impl<'a> Decoder<'a> {
     {
         let mut decoder = Self::new(buffer);
         let value: T = decoder.read_type()?;
-        return Ok(value);
+        Ok(value)
     }
 }
 
@@ -206,8 +206,8 @@ mod tests {
         let mut encoder = Encoder::new();
         encoder.write_u8(0xAA);
         encoder.write_u16(0xBBCC);
-        encoder.write_bytes(&vec![1, 2, 3]);
-        encoder.write_registers(&vec![300, 301, 302]);
+        encoder.write_bytes(&[1, 2, 3]);
+        encoder.write_registers(&[300, 301, 302]);
 
         assert_eq!(encoder.position(), 12);
 

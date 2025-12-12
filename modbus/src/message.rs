@@ -21,7 +21,7 @@ impl Encodable for Message {
         encoder.write_u8(self.unit_id);
         encoder.write_u8(self.function_code.into());
         encoder.write_bytes(&self.body);
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -40,13 +40,13 @@ impl Decodable<Self> for Message {
 
         let body = decoder.read_bytes((byte_length - 2).into())?;
 
-        return Ok(Self {
+        Ok(Self {
             transaction_id,
             protocol_id,
             unit_id,
             function_code,
             body,
-        });
+        })
     }
 }
 
@@ -70,7 +70,7 @@ mod tests {
 
         assert_eq!(bytes.len(), 11);
 
-        let decoded_msg = Message::decode_from_bytes(&bytes).unwrap();
+        let decoded_msg = Message::decode_from_bytes(bytes).unwrap();
 
         assert_eq!(msg, decoded_msg);
     }

@@ -37,7 +37,7 @@ struct ServerImpl<'a> {
 }
 
 impl ModbusTCPServerHandler for ServerImpl<'static> {
-    async fn handle_read_device_identification(&self, _addr: SocketAddr, _unit_id: u8) -> Result<Cow<DeviceIdentification>, ModbusException> {
+    async fn handle_read_device_identification(&self, _addr: SocketAddr, _unit_id: u8) -> Result<Cow<'_, DeviceIdentification<'_>>, ModbusException> {
         Ok(Cow::Borrowed(&self.device_info))
     }
 }

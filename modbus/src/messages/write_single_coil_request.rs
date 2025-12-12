@@ -10,15 +10,15 @@ impl Encodable for WriteSingleCoilRequest {
     fn encode(&self, encoder: &mut Encoder) -> EncodeResult {
         encoder.write_u16(self.address);
         encoder.write_u16(if self.value { 0xFF00 } else { 0 });
-        return Ok(());
+        Ok(())
     }
 }
 
 impl Decodable<Self> for WriteSingleCoilRequest {
     fn decode(decoder: &mut Decoder) -> DecodeResult<Self> {
-        return Ok(Self {
+        Ok(Self {
             address: decoder.read_u16()?,
             value: decoder.read_u16()? != 0,
-        });
+        })
     }
 }

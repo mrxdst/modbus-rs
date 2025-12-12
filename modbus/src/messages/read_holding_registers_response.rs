@@ -11,7 +11,7 @@ impl<'a> Encodable for ReadHoldingRegistersResponse<'a> {
     fn encode(&self, encoder: &mut Encoder) -> EncodeResult {
         encoder.write_u8((self.values.len() * 2).try_into()?);
         encoder.write_registers(&self.values);
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -21,8 +21,8 @@ impl<'a> Decodable<Self> for ReadHoldingRegistersResponse<'a> {
         if byte_length % 2 != 0 {
             return Err(DecodeError::InvalidData("Byte length in not a multiple of 2".into()));
         }
-        return Ok(Self {
+        Ok(Self {
             values: decoder.read_registers((byte_length / 2) as usize)?.into(),
-        });
+        })
     }
 }

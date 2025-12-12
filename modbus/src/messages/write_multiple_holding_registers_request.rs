@@ -14,7 +14,7 @@ impl<'a> Encodable for WriteMultipleHoldingRegistersRequest<'a> {
         encoder.write_u16(self.values.len().try_into()?);
         encoder.write_u8((self.values.len() * 2).try_into()?);
         encoder.write_registers(&self.values);
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -26,9 +26,9 @@ impl<'a> Decodable<Self> for WriteMultipleHoldingRegistersRequest<'a> {
         if length as usize * 2 != byte_length as usize {
             return Err(DecodeError::InvalidData("Byte length mismatch".into()));
         }
-        return Ok(Self {
+        Ok(Self {
             address,
             values: decoder.read_registers(length as usize)?.into(),
-        });
+        })
     }
 }

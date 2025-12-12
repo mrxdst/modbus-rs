@@ -23,7 +23,7 @@ impl<'a> Encodable for ReadDeviceIdentificationResponse<'a> {
             encoder.write_u8(data.len().try_into()?);
             encoder.write_bytes(data);
         }
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -41,12 +41,12 @@ impl<'a> Decodable<Self> for ReadDeviceIdentificationResponse<'a> {
             let data = decoder.read_bytes(length.into())?;
             objects.insert(id, data.into());
         }
-        return Ok(Self {
+        Ok(Self {
             device_id_code,
             conformity_level,
             more_follows,
             next_object_id,
             objects,
-        });
+        })
     }
 }

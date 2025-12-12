@@ -158,7 +158,7 @@ impl ClientImpl {
 
         for (id, data) in result.objects {
             let data = data.iter().map(|v| format!("{v:#x}")).collect::<Vec<String>>().join(", ");
-            table.add_row([format!("{id:#x}"), format!("{data}")]);
+            table.add_row([format!("{id:#x}"), data.to_string()]);
         }
 
         println!("{table}");
@@ -301,8 +301,8 @@ impl ClientImpl {
                         WriteDatatype::U64 => value.parse::<u64>()?.to_be_bytes().to_vec(),
                         WriteDatatype::I64 => value.parse::<i64>()?.to_be_bytes().to_vec(),
                         WriteDatatype::F64 => value.parse::<f64>()?.to_be_bytes().to_vec(),
-                        WriteDatatype::Hex => u16::from_str_radix(&value, 16)?.to_be_bytes().to_vec(),
-                        WriteDatatype::Bin => u16::from_str_radix(&value, 2)?.to_be_bytes().to_vec(),
+                        WriteDatatype::Hex => u16::from_str_radix(value, 16)?.to_be_bytes().to_vec(),
+                        WriteDatatype::Bin => u16::from_str_radix(value, 2)?.to_be_bytes().to_vec(),
                     };
                     match args.order {
                         WriteOrder::HL => {
@@ -333,7 +333,7 @@ impl ClientImpl {
         Ok(())
     }
 
-    fn print_coils(&mut self, address: Address, values: &Vec<bool>) {
+    fn print_coils(&mut self, address: Address, values: &[bool]) {
         let mut table = Table::new();
         table.load_preset(presets::NOTHING);
         table.set_header(["Address", "Value"]);
@@ -349,7 +349,7 @@ impl ClientImpl {
         self.last_table = Some(table);
     }
 
-    fn print_registers(&mut self, address: Address, values: &Vec<u16>, show64bit: bool) {
+    fn print_registers(&mut self, address: Address, values: &[u16], show64bit: bool) {
         let show32bit = if show64bit { true } else { values.len() > 1 };
 
         let mut table = Table::new();

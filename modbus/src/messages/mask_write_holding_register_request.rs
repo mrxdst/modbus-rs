@@ -12,16 +12,16 @@ impl Encodable for MaskWriteHoldingRegisterRequest {
         encoder.write_u16(self.address);
         encoder.write_u16(self.and_mask);
         encoder.write_u16(self.or_mask);
-        return Ok(());
+        Ok(())
     }
 }
 
 impl Decodable<Self> for MaskWriteHoldingRegisterRequest {
     fn decode(decoder: &mut Decoder) -> DecodeResult<Self> {
-        return Ok(Self {
+        Ok(Self {
             address: decoder.read_u16()?,
             and_mask: decoder.read_u16()?,
             or_mask: decoder.read_u16()?,
-        });
+        })
     }
 }
