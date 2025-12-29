@@ -19,7 +19,7 @@ impl<'a> Decodable<Self> for ReadInputRegistersResponse<'a> {
     fn decode(decoder: &mut Decoder) -> DecodeResult<Self> {
         let byte_length = decoder.read_u8()?;
         if byte_length % 2 != 0 {
-            return Err(DecodeError::InvalidData("Byte length in not a multiple of 2".into()));
+            return Err(DecodeError::InvalidData("Byte length in not a multiple of 2"));
         }
         Ok(Self {
             values: decoder.read_registers((byte_length / 2) as usize)?.into(),

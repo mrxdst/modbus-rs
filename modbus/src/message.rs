@@ -32,7 +32,7 @@ impl Decodable<Self> for Message {
         let byte_length = decoder.read_u16()?;
 
         if byte_length as usize > MSG_MAX_LENGTH - 6 {
-            return Err(DecodeError::InvalidData("Byte length to large".into()));
+            return Err(DecodeError::InvalidData("Byte length to large"));
         }
 
         let unit_id = decoder.read_u8()?;

@@ -27,7 +27,7 @@ impl<'a> Decodable<Self> for WriteMultipleCoilsRequest<'a> {
         let byte_length = decoder.read_u8()?;
 
         if (length as u32).div_ceil(8) != byte_length as u32 {
-            return Err(DecodeError::InvalidData("Byte length mismatch".into()));
+            return Err(DecodeError::InvalidData("Byte length mismatch"));
         }
 
         Ok(Self {

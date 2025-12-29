@@ -24,7 +24,7 @@ impl<'a> Decodable<Self> for WriteMultipleHoldingRegistersRequest<'a> {
         let length = decoder.read_u16()?;
         let byte_length = decoder.read_u8()?;
         if length as usize * 2 != byte_length as usize {
-            return Err(DecodeError::InvalidData("Byte length mismatch".into()));
+            return Err(DecodeError::InvalidData("Byte length mismatch"));
         }
         Ok(Self {
             address,
