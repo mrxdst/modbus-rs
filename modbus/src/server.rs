@@ -148,7 +148,7 @@ where
                     *cnt = cnt.saturating_add(1);
                     drop(cnt);
 
-                    let connection = Arc::new(Connection::new(stream));
+                    let connection = Connection::new(stream);
                     let handler = handler.clone();
                     let connection_count = connection_count.clone();
 
@@ -163,7 +163,9 @@ where
         })
     }
 
-    async fn process(connection: Arc<Connection>, addr: SocketAddr, handler: &Arc<T>) {
+    async fn process(connection: Connection, addr: SocketAddr, handler: &Arc<T>) {
+        let connection = Arc::new(connection);
+
         let limiter = Arc::new(Semaphore::new(match handler.max_concurrent_requests() {
             0 => Semaphore::MAX_PERMITS,
             v => v,

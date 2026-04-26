@@ -1,9 +1,10 @@
-use bytes::{Buf, BytesMut};
+use std::ops::DerefMut;
+
+use thiserror::Error;
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::AsyncWriteExt,
     net::{
-        tcp::{OwnedReadHalf, OwnedWriteHalf},
-        TcpStream,
+        TcpStream, tcp::{OwnedReadHalf, OwnedWriteHalf}
     },
     sync::Mutex,
 };
@@ -13,22 +14,22 @@ use crate::{encoding::*, message::Message};
 pub struct Connection {
     reader: Mutex<OwnedReadHalf>,
     writer: Mutex<OwnedWriteHalf>,
-    read_buffer: Mutex<BytesMut>,
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ReadError {
-    #[allow(unused)]
-    IO(tokio::io::Error),
-    #[allow(unused)]
-    Decode(DecodeError),
+    #[error(transparent)]
+    IO(#[from] tokio::io::Error),
+    #[error(transparent)]
+    Decode(#[from] DecodeError),
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum WriteError {
-    #[allow(unused)]
-    IO(tokio::io::Error),
-    Encode(EncodeError),
+    #[error(transparent)]
+    IO(#[from] tokio::io::Error),
+    #[error(transparent)]
+    Encode(#[from] EncodeError),
 }
 
 impl Connection {
@@ -37,45 +38,24 @@ impl Connection {
         Self {
             reader: Mutex::new(reader),
             writer: Mutex::new(writer),
-            read_buffer: Mutex::new(BytesMut::with_capacity(32)),
         }
     }
 
     pub async fn read_message(&self) -> Result<Option<Message>, ReadError> {
-        loop {
-            let mut reader = self.reader.lock().await;
-            let mut read_buffer = self.read_buffer.lock().await;
+        let mut reader = self.reader.lock().await;
 
-            let mut decoder = Decoder::new(&read_buffer);
-            let msg = decoder.read_type();
+        let mut t = [0];
+        let len = reader.peek(&mut t).await?;
+        if len == 0 { return Ok(None); }
 
-            match msg {
-                Ok(msg) => {
-                    let pos = decoder.position();
-                    read_buffer.advance(pos);
-                    return Ok(Some(msg));
-                }
-                Err(err) => {
-                    match err {
-                        DecodeError::InvalidData(_) => return Err(ReadError::Decode(err)),
-                        DecodeError::MissingData => {}, // wait for more data
-                    }
-                }
-            }
-
-            let bytes_read = reader.read_buf(&mut *read_buffer).await.map_err(ReadError::IO)?;
-
-            if bytes_read == 0 {
-                _ = self.writer.lock().await.shutdown().await;
-                return Ok(None);
-            }
-        }
+        Ok(Some(Message::read(reader.deref_mut()).await?))
     }
 
     pub async fn write_message(&self, msg: &Message) -> Result<(), WriteError> {
         let bytes = msg.encode_to_bytes().map_err(WriteError::Encode)?;
 
         let mut writer = self.writer.lock().await;
+
         writer.write_all(&bytes).await.map_err(WriteError::IO)?;
 
         Ok(())

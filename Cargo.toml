@@ -3,4 +3,4 @@ members = [
     "modbus",
     "modbus-test",
 ]
-resolver = "2"
+resolver = "3"

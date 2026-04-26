@@ -256,9 +256,9 @@ impl ClientImpl {
             AddressKind::InputRegister => {
                 ResultType::Registers(timeout_or_cancel(self.timeout, client.read_input_registers(self.unit_id, address.index, args.length)).await??)
             }
-            AddressKind::HoldingRegister => ResultType::Registers(
-                timeout_or_cancel(self.timeout, client.read_holding_registers(self.unit_id, address.index, args.length)).await??,
-            ),
+            AddressKind::HoldingRegister => {
+                ResultType::Registers(timeout_or_cancel(self.timeout, client.read_holding_registers(self.unit_id, address.index, args.length)).await??)
+            }
         };
 
         match result {
@@ -516,10 +516,10 @@ impl ClientImpl {
             _ = client_.lock().await.take();
             println!();
             println!();
-            match result {
-                Ok(_) => println!("Connection closed"),
-                Err(err) => println!("{err}"),
+            if let Err(err) = result {
+                println!("{err}")
             }
+            println!("Connection closed");
             println!();
         });
 
